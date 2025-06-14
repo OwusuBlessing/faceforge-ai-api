@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+requests
+pydantic
+python-multipart
+pillow
+opencv-python
+imagekitio
+runpod
