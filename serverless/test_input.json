@@ -1,0 +1,9 @@
+{
+    "input": {
+        "process_type": "image_edit",
+        "image_url": "https://ik.imagekit.io/6pxd8st0ugi/default_430b8614f9c1c9b4ff66f20a29658c44_TLE0k2xfr.jpg",
+        "mask_url": "https://ik.imagekit.io/6pxd8st0ugi/default_1ecc37db4705e9b752ebddfd790a047d_i89ZbCXiW.jpg",
+        "section": "hair",
+        "prompt": "change hair color to blonde with wavy style"
+    }
+}

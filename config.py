@@ -11,6 +11,9 @@ class Config:
     DEEPAI_API_KEY = os.getenv('DEEPAI_API_KEY')
     HEDRA_API_KEY = os.getenv('HEDRA_API_KEY')
     API_KEY_ACCESS = os.getenv('API_KEY_ACCESS')
+    PORT = os.getenv('PORT')
     #print(f"HEDRA API KEY: {HEDRA_API_KEY}")
    
         
+
+

@@ -7,3 +7,6 @@ pillow
 opencv-python
 imagekitio
 runpod
+uvicorn
+fastapi
+gunicorn
