@@ -7,7 +7,7 @@ pipeline = ImageEditingPipeline()
 async def main():
     try:
         # Local image path
-        local_image_path = "data/sample_pics/img8.jpeg"
+        local_image_path = "data/sample_pics/sample.png"
         
         if not os.path.exists(local_image_path):
             raise FileNotFoundError(f"Image file not found at: {local_image_path}")
@@ -21,7 +21,7 @@ async def main():
         print("Processing image with pipeline...")
         result = await pipeline.process_image(
             image_url=image_url,
-            section=EditSection.HAIR,
+            section=EditSection.CLOTHES,
             prompt="change hair to green "
         )
         print(f"Final result: {result}")

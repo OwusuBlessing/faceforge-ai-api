@@ -10,6 +10,7 @@ class Config:
     SEGMIND_API_KEY = os.getenv('SEGMIND_API_KEY')
     DEEPAI_API_KEY = os.getenv('DEEPAI_API_KEY')
     HEDRA_API_KEY = os.getenv('HEDRA_API_KEY')
-    print(f"HEDRA API KEY: {HEDRA_API_KEY}")
+    API_KEY_ACCESS = os.getenv('API_KEY_ACCESS')
+    #print(f"HEDRA API KEY: {HEDRA_API_KEY}")
    
         
