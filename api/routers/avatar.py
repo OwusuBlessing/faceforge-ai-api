@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from api.models.requests import AvatarThemeRequest
 from api.models.responses import AvatarThemeResponse
-from api.dependencies.auth import verify_api_key
+from api.dependencies.auth import get_api_key
 from api.dependencies.validators import validate_theme
 from src.components.avatar_theme import theme_generation
 
@@ -11,7 +11,10 @@ router = APIRouter(
 )
 
 @router.post("", response_model=AvatarThemeResponse)
-async def process_avatar_theme(request: AvatarThemeRequest = Depends(verify_api_key)):
+async def process_avatar_theme(
+    request: AvatarThemeRequest,
+    _: str = Depends(get_api_key)
+):
     """Process avatar theme generation request."""
     try:
         theme_enum = validate_theme(request.theme)

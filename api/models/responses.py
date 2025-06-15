@@ -1,5 +1,5 @@
 from pydantic import BaseModel, HttpUrl
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime
 
 class BaseResponse(BaseModel):
@@ -8,10 +8,10 @@ class BaseResponse(BaseModel):
     error: Optional[str] = None
 
 class AvatarThemeResponse(BaseResponse):
-    data: dict[str, HttpUrl]
+    data: dict[str, str]
 
 class ImageEditResponse(BaseResponse):
-    data: dict[str, HttpUrl]
+    data: dict[str, Optional[Any]]
 
 class VideoGenerationResponse(BaseResponse):
-    data: dict[str, str | HttpUrl | datetime] 
+    data: dict[str, str | str | datetime] 

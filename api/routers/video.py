@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from api.models.requests import VideoGenerationRequest
 from api.models.responses import VideoGenerationResponse
-from api.dependencies.auth import verify_api_key
+from api.dependencies.auth import get_api_key
 from src.components.hedra_video import generate_video
 
 router = APIRouter(
@@ -10,7 +10,10 @@ router = APIRouter(
 )
 
 @router.post("", response_model=VideoGenerationResponse)
-async def process_video_generation(request: VideoGenerationRequest = Depends(verify_api_key)):
+async def process_video_generation(
+    request: VideoGenerationRequest,
+    _: str = Depends(get_api_key)
+):
     """Process video generation request."""
     try:
         result = generate_video(

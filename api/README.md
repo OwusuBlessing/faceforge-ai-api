@@ -22,6 +22,14 @@ Once the server is running, you can access:
 - Interactive API documentation (Swagger UI): `http://localhost:8000/docs`
 - Alternative API documentation (ReDoc): `http://localhost:8000/redoc`
 
+## Authentication
+
+All endpoints require Bearer token authentication. Include your API key in the `Authorization` header:
+
+```
+Authorization: Bearer your-api-key-here
+```
+
 ## Endpoints
 
 ### 1. Avatar Theme Generation
@@ -29,6 +37,11 @@ Once the server is running, you can access:
 Transforms an image into a themed avatar based on the specified theme.
 
 **Endpoint:** `POST /avatar-theme`
+
+**Headers:**
+```
+Authorization: Bearer your-api-key-here
+```
 
 **Valid Themes:**
 - `realistic portrait`
@@ -41,7 +54,6 @@ Transforms an image into a themed avatar based on the specified theme.
 **Request Body:**
 ```json
 {
-    "api_key": "your-api-key-here",
     "image_url": "https://example.com/image.jpg",
     "theme": "anime"
 }
@@ -63,6 +75,11 @@ Edits specific sections of an image based on a text prompt.
 
 **Endpoint:** `POST /image-edit`
 
+**Headers:**
+```
+Authorization: Bearer your-api-key-here
+```
+
 **Valid Sections:**
 - `hair`
 - `background`
@@ -71,7 +88,6 @@ Edits specific sections of an image based on a text prompt.
 **Request Body:**
 ```json
 {
-    "api_key": "your-api-key-here",
     "image_url": "https://example.com/image.jpg",
     "section": "background",
     "prompt": "A beautiful sunset over mountains",
@@ -95,10 +111,14 @@ Generates a video from an image, audio, and text prompt using AI.
 
 **Endpoint:** `POST /video-generation`
 
+**Headers:**
+```
+Authorization: Bearer your-api-key-here
+```
+
 **Request Body:**
 ```json
 {
-    "api_key": "your-api-key-here",
     "image_url": "https://example.com/image.jpg",
     "audio_url": "https://example.com/audio.mp3",
     "text_prompt": "A beautiful sunset over mountains",
@@ -127,19 +147,18 @@ Generates a video from an image, audio, and text prompt using AI.
 The API uses standard HTTP status codes:
 - 200: Success
 - 400: Bad Request (invalid parameters)
-- 401: Unauthorized (invalid API key)
+- 401: Unauthorized (invalid or missing API key)
 - 500: Internal Server Error
 
 Error responses follow this format:
 ```json
 {
-    "detail": "Error message description"
+    "detail": {
+        "error": "Unauthorized",
+        "message": "API key is missing or invalid."
+    }
 }
 ```
-
-## Authentication
-
-All endpoints require an API key for authentication. The API key must be included in the request body for every endpoint.
 
 ## Rate Limiting
 
