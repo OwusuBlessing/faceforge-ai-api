@@ -1,27 +1,47 @@
-# FaceForge AI API Handler
+# FaceForge AI FastAPI
 
-This handler provides endpoints for various AI-powered image and video processing capabilities including avatar theme generation, image editing, and video generation.
+This is the FastAPI implementation of the FaceForge AI API, providing endpoints for various AI-powered image and video processing capabilities.
 
-## API Endpoints
+## Getting Started
 
-All endpoints accept POST requests with a JSON payload containing a `process_type` and specific parameters for each process type.
-
-### Common Response Format
-
-All responses follow this format:
-```json
-{
-    "status": "success" | "error",
-    "data": { ... } | null,
-    "error": "error message" | null
-}
+1. Install the required dependencies:
+```bash
+pip install fastapi uvicorn
 ```
 
-## Process Types
+2. Run the FastAPI server:
+```bash
+uvicorn main:app --reload
+```
+
+The API will be available at `http://localhost:8000`
+
+## API Documentation
+
+Once the server is running, you can access:
+- Interactive API documentation (Swagger UI): `http://localhost:8000/docs`
+- Alternative API documentation (ReDoc): `http://localhost:8000/redoc`
+
+## Authentication
+
+All endpoints require Bearer token authentication. Include your API key in the `Authorization` header:
+
+```
+Authorization: Bearer your-api-key-here
+```
+
+## Endpoints
 
 ### 1. Avatar Theme Generation
 
 Transforms an image into a themed avatar based on the specified theme.
+
+**Endpoint:** `POST /avatar-theme`
+
+**Headers:**
+```
+Authorization: Bearer your-api-key-here
+```
 
 **Valid Themes:**
 - `realistic portrait`
@@ -31,19 +51,15 @@ Transforms an image into a themed avatar based on the specified theme.
 - `ghibli`
 - `emoji`
 
-**Payload:**
+**Request Body:**
 ```json
 {
-    "input": {
-        "api_key": "your-api-key-here",
-        "process_type": "avatar_theme",
-        "image_url": "https://example.com/image.jpg",
-        "theme": "anime"  // Must be one of the valid themes listed above
-    }
+    "image_url": "https://example.com/image.jpg",
+    "theme": "anime"
 }
 ```
 
-**Sample Success Response:**
+**Response:**
 ```json
 {
     "status": "success",
@@ -53,38 +69,33 @@ Transforms an image into a themed avatar based on the specified theme.
 }
 ```
 
-**Sample Error Response:**
-```json
-{
-    "status": "error",
-    "error": "Invalid theme. Must be one of: ['realistic portrait', 'anime', 'cyberpunk', 'toy', 'ghibli', 'emoji']"
-}
-```
-
 ### 2. Image Edit
 
 Edits specific sections of an image based on a text prompt.
+
+**Endpoint:** `POST /image-edit`
+
+**Headers:**
+```
+Authorization: Bearer your-api-key-here
+```
 
 **Valid Sections:**
 - `hair`
 - `background`
 - `clothes`
 
-**Payload:**
+**Request Body:**
 ```json
 {
-    "input": {
-        "api_key": "your-api-key-here",
-        "process_type": "image_edit",
-        "image_url": "https://example.com/image.jpg",
-        "section": "background",  // Must be one of the valid sections listed above
-        "prompt": "A beautiful sunset over mountains",
-        "mask_url": "https://example.com/mask.png"  // Optional
-    }
+    "image_url": "https://example.com/image.jpg",
+    "section": "background",
+    "prompt": "A beautiful sunset over mountains",
+    "mask_url": "https://example.com/mask.png"  // Optional
 }
 ```
 
-**Sample Success Response:**
+**Response:**
 ```json
 {
     "status": "success",
@@ -94,36 +105,31 @@ Edits specific sections of an image based on a text prompt.
 }
 ```
 
-**Sample Error Response:**
-```json
-{
-    "status": "error",
-    "error": "Invalid section. Must be one of: ['hair', 'background', 'clothes']"
-}
-```
-
 ### 3. Video Generation
 
 Generates a video from an image, audio, and text prompt using AI.
 
-**Payload:**
+**Endpoint:** `POST /video-generation`
+
+**Headers:**
+```
+Authorization: Bearer your-api-key-here
+```
+
+**Request Body:**
 ```json
 {
-    "input": {
-        "api_key": "your-api-key-here",
-        "process_type": "video_generation",
-        "image_url": "https://example.com/image.jpg",
-        "audio_url": "https://example.com/audio.mp3",
-        "text_prompt": "A beautiful sunset over mountains",
-        "aspect_ratio": "16:9",  // Optional, default: "16:9"
-        "resolution": "720p",    // Optional, default: "720p"
-        "duration": 10.0,        // Optional, duration in seconds
-        "seed": 42              // Optional, default: 42
-    }
+    "image_url": "https://example.com/image.jpg",
+    "audio_url": "https://example.com/audio.mp3",
+    "text_prompt": "A beautiful sunset over mountains",
+    "aspect_ratio": "16:9",  // Optional, default: "16:9"
+    "resolution": "720p",    // Optional, default: "720p"
+    "duration": 10.0,        // Optional
+    "seed": 42              // Optional, default: 42
 }
 ```
 
-**Sample Success Response:**
+**Response:**
 ```json
 {
     "status": "success",
@@ -136,56 +142,27 @@ Generates a video from an image, audio, and text prompt using AI.
 }
 ```
 
-**Sample Error Response:**
-```json
-{
-    "status": "error",
-    "error": "audio_url is required"
-}
-```
-
 ## Error Handling
 
-The API returns appropriate error messages for:
-- Missing required parameters
-- Invalid process types
-- Invalid parameter values (including invalid themes and sections)
-- Processing failures
+The API uses standard HTTP status codes:
+- 200: Success
+- 400: Bad Request (invalid parameters)
+- 401: Unauthorized (invalid or missing API key)
+- 500: Internal Server Error
 
-## Rate Limiting
-
-Please note that this API may have rate limits depending on your subscription level. Contact support for more information about rate limits and quotas.
-
-## Authentication
-
-All requests require an API key for authentication. The API key must be included in the request payload for every endpoint.
-
-**API Key Format:**
+Error responses follow this format:
 ```json
 {
-    "input": {
-        "api_key": "your-api-key-here",
-        // ... other parameters ...
+    "detail": {
+        "error": "Unauthorized",
+        "message": "API key is missing or invalid."
     }
 }
 ```
 
-If the API key is missing or invalid, the API will return an error response:
-```json
-{
-    "status": "error",
-    "error": "API key is required"
-}
-```
-or
-```json
-{
-    "status": "error",
-    "error": "Invalid API key"
-}
-```
+## Rate Limiting
 
-Contact support to obtain your API credentials.
+Please note that this API may have rate limits depending on your subscription level. Contact support for more information about rate limits and quotas.
 
 ## Support
 
