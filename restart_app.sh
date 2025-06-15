@@ -100,7 +100,7 @@ python -c "import gunicorn, uvicorn" 2>/dev/null || {
 ulimit -n 65536  # Increase file descriptor limit
 
 # Calculate timeouts based on expected request processing time
-TIMEOUT=${TIMEOUT:-120}
+TIMEOUT=${TIMEOUT:-600}
 GRACEFUL_TIMEOUT=${GRACEFUL_TIMEOUT:-30}
 KEEPALIVE=${KEEPALIVE:-5}
 
