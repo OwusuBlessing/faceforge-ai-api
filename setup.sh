@@ -1,4 +1,19 @@
 #!/bin/bash
+# Verify Python 3.11 is installed
+python3.11 --version
+
+# Create symlinks so you can use 'python' command
+sudo ln -sf /usr/bin/python3.11 /usr/local/bin/python
+sudo ln -sf /usr/bin/python3.11 /usr/local/bin/python3
+
+# Install pip for Python 3.11
+sudo apt install python3.11-distutils
+wget https://bootstrap.pypa.io/get-pip.py
+python3.11 get-pip.py
+
+# Test everything works
+python --version
+python -m pip --version
 
 # Create virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
