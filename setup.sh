@@ -1,42 +1,41 @@
 #!/bin/bash
-# Verify Python 3.11 is installed
-python3.11 --version
 
-# Create symlinks so you can use 'python' command
-sudo ln -sf /usr/bin/python3.11 /usr/local/bin/python
-sudo ln -sf /usr/bin/python3.11 /usr/local/bin/python3
+set -e
 
-# Install pip for Python 3.11
-sudo apt install python3.11-distutils
-wget https://bootstrap.pypa.io/get-pip.py
-python3.11 get-pip.py
+echo "Setting up project with conda environment..."
 
-# Test everything works
-python --version
-python -m pip --version
+# Initialize conda for this session
+export PATH="$HOME/miniconda3/bin:$PATH"
+source $HOME/miniconda3/bin/activate python312
 
-# Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv venv
-fi
-
-# Activate virtual environment
-echo "Activating virtual environment..."
-source venv/bin/activate
+# Verify we're in the right environment
+echo "Current Python version: $(python --version)"
+echo "Current environment: $CONDA_DEFAULT_ENV"
 
 # Upgrade pip
 echo "Upgrading pip..."
 pip install --upgrade pip
 
-# Install requirements
-echo "Installing requirements..."
-pip install -r requirements.txt
-
-# Create logs directory if it doesn't exist
-if [ ! -d "logs" ]; then
-    echo "Creating logs directory..."
-    mkdir logs
+# Install requirements if file exists
+if [ -f "requirements.txt" ]; then
+    echo "Installing requirements..."
+    pip install -r requirements.txt
+else
+    echo "No requirements.txt found, skipping package installation."
 fi
 
-echo "Setup completed successfully!" 
+# Create logs directory if it doesn't exist
+echo "Creating logs directory..."
+mkdir -p logs
+
+# Test typing.override
+echo "Testing typing.override..."
+python -c "from typing import override; print('✓ typing.override works!')"
+
+echo "========================================="
+echo "Project setup completed!"
+echo "========================================="
+echo "To run your project:"
+echo "1. conda activate python312"
+echo "2. python app.py"
+echo ""
