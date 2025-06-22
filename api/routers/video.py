@@ -12,6 +12,9 @@ import os
 import time
 import requests
 from config import Config
+from urllib.parse import urlparse
+from io import BytesIO
+import urllib.parse
 
 router = APIRouter(
     prefix="/video-generation",
@@ -44,26 +47,108 @@ async def start_hedra_generation(request_data: dict) -> str:
         model_id = "d1dd37a3-e39a-4854-a298-6510289f9cf2"
 
         # Download and upload image
-        image_response = requests.get(request_data["image_url"])
+        image_url = request_data["image_url"]
+        image_filename = os.path.basename(urlparse(image_url).path) or "input.jpg"
+        logger.info(f"Downloading image from: {image_url}")
+        image_response = requests.get(image_url)
         image_response.raise_for_status()
         image_data = image_response.content
+        image_content_type = image_response.headers.get("Content-Type", "image/jpeg")
+        logger.info(f"Image downloaded: {len(image_data)} bytes, content-type: {image_content_type}, filename: {image_filename}")
 
+        logger.info("Creating image asset...")
         image_upload_response = session.post(
             "/assets",
-            json={"name": "input_image.jpg", "type": "image"},
+            json={"name": image_filename, "type": "image"},
         )
+        if not image_upload_response.ok:
+            error_text = image_upload_response.text
+            logger.error(f"Image asset creation failed: {image_upload_response.status_code} - {error_text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Image asset creation failed: {error_text}"
+            )
+        image_upload_response.raise_for_status()
         image_id = image_upload_response.json()["id"]
-        session.post(f"/assets/{image_id}/upload", files={"file": image_data}).raise_for_status()
+        logger.info(f"Image asset created with ID: {image_id}")
+        
+        # Use BytesIO for file upload
+        image_file = BytesIO(image_data)
+        image_file.name = image_filename
+        logger.info(f"Uploading image file: {image_filename}, size: {len(image_data)} bytes")
+        upload_response = session.post(f"/assets/{image_id}/upload", files={"file": image_file})
+        logger.info(f"Image upload response status: {upload_response.status_code}")
+        if not upload_response.ok:
+            error_text = upload_response.text
+            logger.error(f"Image upload failed: {upload_response.status_code} - {error_text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Image upload failed: {error_text}"
+            )
+        upload_response.raise_for_status()
+        logger.info("Image upload successful")
 
         # Download and upload audio
-        audio_response = requests.get(request_data["audio_url"])
+        audio_url = request_data["audio_url"]
+        audio_filename = os.path.basename(urlparse(audio_url).path) or "input.mp3"
+        logger.info(f"Downloading audio from: {audio_url}")
+        audio_response = requests.get(audio_url)
         audio_response.raise_for_status()
         audio_data = audio_response.content
+        audio_content_type = audio_response.headers.get("Content-Type", "audio/mpeg")
+        
+        # Fix audio filename and content type if needed
+        if not audio_filename.lower().endswith(('.mp3', '.wav', '.m4a', '.aac', '.ogg')):
+            if 'audio/wav' in audio_content_type:
+                audio_filename = "audio.wav"
+            elif 'audio/mpeg' in audio_content_type or 'audio/mp3' in audio_content_type:
+                audio_filename = "audio.mp3"
+            elif 'audio/mp4' in audio_content_type or 'audio/m4a' in audio_content_type:
+                audio_filename = "audio.m4a"
+            elif 'audio/aac' in audio_content_type:
+                audio_filename = "audio.aac"
+            elif 'audio/ogg' in audio_content_type:
+                audio_filename = "audio.ogg"
+            else:
+                audio_filename = "audio.mp3"  # Default fallback
+                audio_content_type = "audio/mpeg"
+        
+        # Ensure content type is audio, not video
+        if audio_content_type.startswith('video/'):
+            audio_content_type = "audio/mpeg"
+        
+        logger.info(f"Audio downloaded: {len(audio_data)} bytes, content-type: {audio_content_type}, filename: {audio_filename}")
 
-        audio_id = session.post(
-            "/assets", json={"name": "input_audio.mp3", "type": "audio"}
-        ).json()["id"]
-        session.post(f"/assets/{audio_id}/upload", files={"file": audio_data}).raise_for_status()
+        logger.info("Creating audio asset...")
+        audio_upload_response = session.post(
+            "/assets", json={"name": audio_filename, "type": "audio"}
+        )
+        if not audio_upload_response.ok:
+            error_text = audio_upload_response.text
+            logger.error(f"Audio asset creation failed: {audio_upload_response.status_code} - {error_text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Audio asset creation failed: {error_text}"
+            )
+        audio_upload_response.raise_for_status()
+        audio_id = audio_upload_response.json()["id"]
+        logger.info(f"Audio asset created with ID: {audio_id}")
+        
+        # Use BytesIO for file upload
+        audio_file = BytesIO(audio_data)
+        audio_file.name = audio_filename
+        logger.info(f"Uploading audio file: {audio_filename}, size: {len(audio_data)} bytes")
+        audio_upload_response = session.post(f"/assets/{audio_id}/upload", files={"file": audio_file})
+        logger.info(f"Audio upload response status: {audio_upload_response.status_code}")
+        if not audio_upload_response.ok:
+            error_text = audio_upload_response.text
+            logger.error(f"Audio upload failed: {audio_upload_response.status_code} - {error_text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Audio upload failed: {error_text}"
+            )
+        audio_upload_response.raise_for_status()
+        logger.info("Audio upload successful")
 
         # Prepare generation request
         generation_request_data = {
@@ -85,8 +170,17 @@ async def start_hedra_generation(request_data: dict) -> str:
             generation_request_data["generated_video_inputs"]["seed"] = request_data["seed"]
 
         # Start generation
-        generation_response = session.post("/generations", json=generation_request_data).json()
-        return generation_response["id"]
+        generation_response = session.post("/generations", json=generation_request_data)
+        if not generation_response.ok:
+            error_text = generation_response.text
+            logger.error(f"Generation creation failed: {generation_response.status_code} - {error_text}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Generation creation failed: {error_text}"
+            )
+        generation_response.raise_for_status()
+        generation_data = generation_response.json()
+        return generation_data["id"]
 
     except Exception as e:
         logger.error(f"Failed to start Hedra generation: {str(e)}")
@@ -132,6 +226,12 @@ async def get_job_status(
 ):
     """Get the status of a video generation job by querying Hedra API directly"""
     try:
+        # Clean up the job_id - remove any URL encoding and extra quotes
+        job_id = urllib.parse.unquote(job_id)
+        job_id = job_id.strip('"\'')  # Remove any surrounding quotes
+        
+        logger.info(f"Checking status for job ID: {job_id}")
+        
         api_key = Config.HEDRA_API_KEY
         if not api_key:
             raise HTTPException(
@@ -148,6 +248,12 @@ async def get_job_status(
             raise HTTPException(
                 status_code=404,
                 detail="Job not found"
+            )
+        
+        if status_response.status_code == 422:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Invalid job ID format: {job_id}"
             )
         
         status_response.raise_for_status()

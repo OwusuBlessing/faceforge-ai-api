@@ -10,3 +10,4 @@ runpod
 uvicorn
 fastapi
 gunicorn
+hedra-python
